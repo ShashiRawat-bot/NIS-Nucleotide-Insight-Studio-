@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCBI BLAST Query</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom CSS for loading spinner */
+        .spinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+        .spinner div {
+            width: 16px;
+            height: 16px;
+            margin: 2px;
+            background: #007bff;
+            border-radius: 50%;
+            animation: bounce 0.6s infinite alternate;
+        }
+        @keyframes bounce {
+            to {
+                opacity: 0.3;
+                transform: translateY(-16px);
+            }
+        }
+        .spinner div:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .spinner div:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4">Run NCBI BLAST</h1>
+        <p>The DNA sequence from your uploaded FASTA file is preloaded for BLAST. Click "Run BLAST" to query the NCBI database.</p>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert {{ 'alert-danger' if 'error' in messages[0][0] else 'alert-success' }} mt-3">
+                    <ul>
+                        {% for category, message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- BLAST Form -->
+        <form method="POST" action="{{ url_for('blast') }}">
+            <div class="form-group">
+                <label for="blast_sequence">DNA Sequence:</label>
+                <textarea name="blast_sequence" id="blast_sequence" class="form-control" rows="5" readonly>{{ session.get('dna_sequence', '') }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" id="blast-btn">Run BLAST</button>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div class="spinner">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+
+        <!-- Display Results in Table Format -->
+        {% if blast_results %}
+            <h2 class="mt-4">BLAST Results:</h2>
+            <table class="table table-striped mt-4">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Max Score</th>
+                        <th>Total Score</th>
+                        <th>Query Coverage (%)</th>
+                        <th>E-value</th>
+                        <th>Percent Identical (%)</th>
+                        <th>Accession</th>
+                        <th>Alignment</th>  <!-- Added column for alignment -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in blast_results %}
+                        <tr>
+                            <td>{{ result.description }}</td>
+                            <td>{{ result.max_score }}</td>
+                            <td>{{ result.total_score }}</td>
+                            <td>{{ result.query_coverage | round(2) }}</td>
+                            <td>{{ result.e_value }}</td>
+                            <td>{{ result.percent_identical | round(2) }}</td>
+                            <td>{{ result.accession }}</td>
+                            <td>
+                                <pre>{{ result.alignment | safe }}</pre> <!-- Correct way to display alignment -->
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-secondary mt-2" onclick="downloadResults()">Download Results</button>
+        {% else %}
+            <div class="alert alert-warning mt-4">
+                <p>No BLAST results available yet. Please run a query.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Show spinner when form is submitted
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const button = document.querySelector('#blast-btn');
+            button.disabled = true;
+            button.innerHTML = 'Running BLAST...';
+            document.querySelector('.spinner').style.display = 'flex';
+        });
+
+        // Download results as CSV
+        function downloadResults() {
+            const table = document.querySelector('table');
+            let csvContent = 'Description,Max Score,Total Score,Query Coverage (%),E-value,Percent Identical (%),Accession\n';
+            table.querySelectorAll('tr').forEach(function(row, index) {
+                // Skip the header row
+                if (index === 0) return;
+                const cells = row.querySelectorAll('td');
+                csvContent += Array.from(cells).map(cell => `"${cell.innerText}"`).join(',') + '\n';
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'blast_results.csv';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

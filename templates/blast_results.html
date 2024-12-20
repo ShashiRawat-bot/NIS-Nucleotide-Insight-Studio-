@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLAST Results</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Scrollable result container for large outputs */
+        .results-container {
+            max-height: 600px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap; /* Preserve formatting */
+            font-family: monospace;
+        }
+
+        /* Add slight spacing for buttons */
+        .action-buttons button, .action-buttons a {
+            margin-right: 10px;
+        }
+
+        /* Styling for loading spinner */
+        .spinner {
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner div {
+            width: 16px;
+            height: 16px;
+            margin: 2px;
+            background: #007bff;
+            border-radius: 50%;
+            animation: bounce 0.6s infinite alternate;
+        }
+        @keyframes bounce {
+            to {
+                opacity: 0.3;
+                transform: translateY(-16px);
+            }
+        }
+        .spinner div:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .spinner div:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4">BLAST Query Results</h1>
+
+        <!-- Conditional display of results -->
+        {% if blast_results %}
+            <h3>Results from BLAST Query:</h3>
+            <p class="text-muted">Below are the results of your query. You can review, scroll, or download them as needed.</p>
+            <div class="results-container">
+                <pre>{{ blast_results }}</pre>
+            </div>
+        {% else %}
+            <p class="text-warning">No results to display. Please run a query first.</p>
+        {% endif %}
+
+        <!-- Action buttons -->
+        <div class="mt-4 action-buttons">
+            <a href="{{ url_for('blast') }}" class="btn btn-primary" aria-label="Go back to BLAST Query">Back to Query</a>
+            {% if blast_results %}
+                <button class="btn btn-secondary" onclick="downloadResults()" aria-label="Download BLAST results as text file">Download Results</button>
+            {% endif %}
+        </div>
+        
+        <!-- Loading Spinner -->
+        <div class="spinner mt-4">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </div>
+
+    <script>
+        // Function to download BLAST results as a .txt file
+        function downloadResults() {
+            const blob = new Blob([document.querySelector('.results-container').innerText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'blast_results.txt';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Show spinner when results are loading
+        function showSpinner() {
+            document.querySelector('.spinner').style.display = 'flex';
+        }
+
+        // Hide spinner after results are loaded
+        function hideSpinner() {
+            document.querySelector('.spinner').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
+

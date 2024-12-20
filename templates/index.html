@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Nucleotide Insight Studio{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1>Nucleotide Insight Studio</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for category, message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- DNA File Upload Form -->
+    <form method="POST" enctype="multipart/form-data" class="mb-4">
+        <div class="form-group">
+            <label for="dna_file">Upload DNA File (FASTA or TXT):</label>
+            <input type="file" name="dna_file" id="dna_file" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    {% if dna_sequence %}
+        <!-- Highlighted DNA Sequence -->
+        <h2 class="mt-4">Highlighted DNA Sequence:</h2>
+        <p style="font-family: monospace; white-space: pre-wrap;">{{ highlighted_sequence|safe }}</p>
+
+        <!-- RNA and Protein Sequences -->
+        <h2>RNA Sequence:</h2>
+        <p>{{ rna_sequence }}</p>
+
+        <h2>Protein Sequence:</h2>
+        <p>{{ protein_sequence }}</p>
+
+        <!-- GC Content -->
+        <h2>GC Content: {{ gc_content }}%</h2>
+
+        <!-- Nucleotide Distribution -->
+        <h2>Nucleotide Distribution:</h2>
+        <ul>
+            {% for nucleotide, count in nucleotide_distribution.items() %}
+                <li>{{ nucleotide }}: {{ count }}</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Nucleotide Distribution Graph -->
+        <h2>Nucleotide Distribution Graph:</h2>
+        <div>{{ graph_html|safe }}</div>
+    {% endif %}
+
+    {% if motif_positions %}
+        <h2>Motif Positions:</h2>
+        <ul>
+            {% for position in motif_positions %}
+                <li>Position: {{ position }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
+<form method="POST" action="/">
+    <button type="submit" name="export_fasta" class="btn btn-primary">Download FASTA</button>
+    <button type="submit" name="export_csv" class="btn btn-secondary">Download CSV</button>
+  </form>
+  
+{% endblock %}

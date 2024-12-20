@@ -1,0 +1,3 @@
+Flask==2.3.0
+Plotly==5.9.0
+Pandas==1.5.2

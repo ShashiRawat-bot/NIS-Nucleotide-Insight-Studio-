@@ -1,0 +1,6 @@
+*.log
+*.tmp
+node_modules/
+*.pyc
+__pycache__/
+.git/

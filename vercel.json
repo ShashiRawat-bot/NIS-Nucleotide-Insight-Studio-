@@ -1,0 +1,13 @@
+{
+    "version": 2,
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/api/flask.py"
+      }
+    ],
+    "env": {
+      "FLASK_ENV": "production"
+    }
+  }
+  
